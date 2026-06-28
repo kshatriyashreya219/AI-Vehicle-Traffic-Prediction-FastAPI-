@@ -26,16 +26,11 @@ A FastAPI-based Machine Learning API that predicts traffic congestion levels bas
 
 1. **Clone the repo**
    ```bash
-   
- git clone https://github.com/kshatriyashreya219/AI-Vehicle-Traffic-Prediction-FastAPI
-
- cd AI-Vehicle-Traffic-Prediction-FastAPI
- 
- pip install -r requirements.txt
- 
- uvicorn main:app --reload
-
+git clone https://github.com/kshatriyashreya219/AI-Vehicle-Traffic-Prediction-FastAPI
+cd AI-Vehicle-Traffic-Prediction-FastAPI
+pip install -r requirements.txt
+uvicorn main:app --reload
+```
 **Test API**
 Open: http://127.0.0.1:8000/docs
 **Made by Shreya** | MCA Student
-```
