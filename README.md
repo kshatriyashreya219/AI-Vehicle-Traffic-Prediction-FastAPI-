@@ -34,8 +34,5 @@ A FastAPI-based Machine Learning API that predicts traffic congestion levels bas
  pip install -r requirements.txt
  
  uvicorn main:app --reload
-```
-**Test API**
-Open: http://127.0.0.1:8000/docs
-**Made by Shreya** | MCA Student
+```**Test API**Open: http://127.0.0.1:8000/docs**Made by Shreya** | MCA Student
 ```
