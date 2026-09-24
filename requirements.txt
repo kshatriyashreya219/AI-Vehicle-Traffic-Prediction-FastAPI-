@@ -1,7 +1,6 @@
-fastapi
-uvicorn
-pandas
-pydantic
-scikit-learn
 streamlit
 plotly
+pandas
+fastapi
+uvicorn
+pydantic
