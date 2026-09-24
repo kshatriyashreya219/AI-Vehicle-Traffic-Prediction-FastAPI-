@@ -2,13 +2,19 @@ import streamlit as st
 import random
 import pandas as pd
 import datetime
+import requests
 
 st.set_page_config(page_title="AI Vehicle Traffic Prediction", page_icon="🚦", layout="wide")
 
+# --- LIVE API CONFIG ---
+API_URL = "https://ai-vehicle-traffic-prediction-fastapi-1.onrender.com/predict"
+
 st.title("🚦 AI Vehicle Traffic Prediction")
 st.subheader("Jaunpur City - Comprehensive Traffic Analysis System")
+st.caption(f"Backend Live: {API_URL} | Developed by Shreya Singh")
 st.divider()
 
+# --- TUMHARA WAHI DATA (Same to same) ---
 junctions = {
     1: {"name": "Polytechnic Intersection", "route": "Prayagraj (Allahabad), Lucknow, and Shahganj", "landmark": "Government Polytechnic College, Lohia Park"},
     2: {"name": "Jesis Intersection (Amravati)", "route": "Azamgarh, Gorakhpur, and Roadways Bus Stand", "landmark": "'I Love Jaunpur' Sign Board, Electronics Market"},
@@ -38,16 +44,31 @@ with col2:
 with col3:
     is_holiday = st.selectbox("Is Holiday?", ["No", "Yes"])
 
-if st.button("🚀 Predict Traffic", use_container_width=True):
+# --- PREDICTION FUNCTION (Stable) ---
+def get_local_prediction(j_id, h, w_day, h_day):
+    random.seed(j_id * 100 + h) # Ab har baar same value ayegi
     base = 110
-    if selected_id in [4, 3, 2]: base += 55
-    if selected_id in [8, 11]: base += 35
-    if 8 <= hour <= 11 or 17 <= hour <= 20: base += 60
-    if weekday == "Monday": base += 20
-    if weekday in ["Saturday","Sunday"]: base = int(base * 0.8)
-    if is_holiday == "Yes": base = int(base * 0.65)
+    if j_id in [4, 3, 2]: base += 55
+    if j_id in [8, 11]: base += 35
+    if 8 <= h <= 11 or 17 <= h <= 20: base += 60
+    if w_day == "Monday": base += 20
+    if w_day in ["Saturday","Sunday"]: base = int(base * 0.8)
+    if h_day == "Yes": base = int(base * 0.65)
+    return base + random.randint(-15, 30)
 
-    vehicles = base + random.randint(-15, 30)
+if st.button("🚀 Predict Traffic", use_container_width=True, type="primary"):
+    # 1. Local Logic
+    vehicles = get_local_prediction(selected_id, hour, weekday, is_holiday)
+
+    # 2. Try Live API also
+    try:
+        payload = {"junction": selected_id, "hour": hour, "day": 15, "is_holiday": 1 if is_holiday=="Yes" else 0}
+        api_res = requests.post(API_URL, json=payload, timeout=5)
+        if api_res.status_code == 200:
+            vehicles = api_res.json().get("predicted_count", vehicles)
+    except:
+        pass # API sleep pe hai to local wala hi dikhao
+
     level = "Low" if vehicles < 130 else "Medium" if vehicles < 210 else "High / Critical"
 
     c1, c2 = st.columns(2)
@@ -64,14 +85,7 @@ if st.button("🚀 Predict Traffic", use_container_width=True):
     # --- GRAPH 1: 24 Hour Traffic Pattern ---
     st.subheader(f"📊 24-Hour Traffic Pattern - {junctions[selected_id]['name']}")
     hours = list(range(24))
-    traffic_data = []
-    for h in hours:
-        b = 110
-        if selected_id in [4, 3, 2]: b += 55
-        if selected_id in [8, 11]: b += 35
-        if 8 <= h <= 11 or 17 <= h <= 20: b += 60
-        traffic_data.append(b + random.randint(-10, 20))
-
+    traffic_data = [get_local_prediction(selected_id, h, weekday, is_holiday) for h in hours]
     chart_df = pd.DataFrame({"Hour": hours, "Vehicles": traffic_data})
     st.bar_chart(chart_df.set_index("Hour"))
 
@@ -79,11 +93,7 @@ if st.button("🚀 Predict Traffic", use_container_width=True):
     st.subheader("📈 All Junctions Comparison (Current Hour)")
     all_data = []
     for jid in junctions:
-        b = 110
-        if jid in [4, 3, 2]: b += 55
-        if jid in [8, 11]: b += 35
-        if 8 <= hour <= 11 or 17 <= hour <= 20: b += 60
-        all_data.append({"Junction": junctions[jid]['name'].split()[0], "Vehicles": b + random.randint(-10, 20)})
+        all_data.append({"Junction": junctions[jid]['name'].split()[0], "Vehicles": get_local_prediction(jid, hour, weekday, is_holiday)})
 
     comp_df = pd.DataFrame(all_data)
     st.line_chart(comp_df.set_index("Junction"))
@@ -100,5 +110,6 @@ st.markdown("""
 - **Project Title:** AI Vehicle Traffic Prediction
 - **Total Junctions Covered:** 11 (8 Four-Way & 3 Three-Way)
 - **Data Source:** Jaunpur City Mapping & Field Research
+- **Backend API:** https://ai-vehicle-traffic-prediction-fastapi-1.onrender.com
 - **Developed By:** Shreya Singh
 """)
