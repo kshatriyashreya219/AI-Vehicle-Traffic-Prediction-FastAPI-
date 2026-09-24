@@ -1,13 +1,26 @@
-from PIL import Image
-import random
+import sqlite3
+import os
 
-def detect_vehicles_from_image(image_path):
-    # YOLOv8 will be integrated here: model = YOLO('yolov8n.pt')
-    count = random.randint(30, 300)
-    if count > 200:
-        level = "CRITICAL"
-    elif count > 120:
-        level = "HIGH"
-    else:
-        level = "LOW"
-    return {"detected_vehicles": count, "level": level, "status": "YOLOv8 detection ready", "note": "Connect CCTV feed here"}
+def init_db():
+    conn = sqlite3.connect("traffic.db")
+    c = conn.cursor()
+    c.execute("""CREATE TABLE IF NOT EXISTS logs 
+              (id INTEGER PRIMARY KEY AUTOINCREMENT, 
+               junction INTEGER, 
+               hour INTEGER, 
+               day INTEGER, 
+               is_holiday INTEGER, 
+               predicted_count INTEGER)""")
+    conn.commit()
+    conn.close()
+
+def save_log(junction, hour, day, is_holiday, predicted_count):
+    try:
+        conn = sqlite3.connect("traffic.db")
+        c = conn.cursor()
+        c.execute("INSERT INTO logs (junction, hour, day, is_holiday, predicted_count) VALUES (?,?,?,?,?)",
+                  (junction, hour, day, is_holiday, predicted_count))
+        conn.commit()
+        conn.close()
+    except:
+        pass
