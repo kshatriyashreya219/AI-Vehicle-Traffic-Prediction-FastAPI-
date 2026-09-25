@@ -1,190 +1,222 @@
 import streamlit as st
 import random
 import pandas as pd
-import datetime
 import requests
+from io import BytesIO
 
-# ----------------------------------------------------------------------------------
 # Page Configuration
-# ----------------------------------------------------------------------------------
 st.set_page_config(
-    page_title="AI Vehicle Traffic Prediction - Smart City Jaunpur",
+    page_title="Jaunpur Smart City - AI Traffic System",
     page_icon="🚦",
     layout="wide"
 )
 
-# ----------------------------------------------------------------------------------
-# Custom Style - Green Predict Button
-# ----------------------------------------------------------------------------------
+# Premium UI Styling
 st.markdown("""
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+html, body, [class*="css"] { font-family: 'Poppins', sans-serif; }
+.stApp { background: #000000; }
+section[data-testid="stSidebar"] { background: #0A0A0A; border-right: 1px solid #1E1E1E; }
+
+h1 { font-weight: 700; letter-spacing: -0.5px; }
+h2, h3 { font-weight: 600; }
+
+div[data-testid="stMetric"] {
+    background: #FFFFFF;
+    padding: 20px;
+    border-radius: 16px;
+    border: 1px solid #EAEAEA;
+    transition: all 0.3s ease;
+}
+div[data-testid="stMetric"]:hover { transform: translateY(-4px); box-shadow: 0 10px 30px rgba(255,255,255,0.15); }
+div[data-testid="stMetric"] label { color: #8B8B8B!important; font-size: 11px; letter-spacing: 1px; }
+div[data-testid="stMetric"] div { color: #000000!important; font-weight: 800; }
+
 div.stButton > button:first-child {
-    background-color: #00C853!important;
-    color: white!important;
+    background: linear-gradient(90deg, #00C853, #00E676);
+    color: white;
+    height: 58px;
+    font-weight: 700;
+    border-radius: 14px;
+    font-size: 16px;
     border: none;
-    height: 50px;
-    font-size: 18px;
-    font-weight: bold;
-    border-radius: 10px;
+    box-shadow: 0 6px 20px rgba(0,200,83,0.3);
 }
-div.stButton > button:first-child:hover {
-    background-color: #00A843!important;
-}
+div.stButton > button:first-child:hover { background: linear-gradient(90deg, #00B34A, #00C853); transform: scale(1.01); }
+
+.stAlert { border-radius: 12px; }
 </style>
 """, unsafe_allow_html=True)
 
-# ----------------------------------------------------------------------------------
-# Backend API Configuration
-# ----------------------------------------------------------------------------------
 API_URL = "https://ai-vehicle-traffic-prediction-fastapi-1.onrender.com/predict"
 
-# ----------------------------------------------------------------------------------
+JUNCTIONS = {
+    1: {"name": "Polytechnic Intersection", "route": "Prayagraj | Lucknow | Shahganj", "parking": "Polytechnic Ground - 30 Slots", "risk": "Low Risk Zone"},
+    2: {"name": "Jesis Intersection", "route": "Azamgarh | Bus Stand | Gorakhpur", "parking": "Bus Stand Parking - 15 Slots", "risk": "Medium Risk - Pedestrian"},
+    3: {"name": "Chaharsu Intersection", "route": "Old Market | Kotwali", "parking": "Shahi Bridge - 10 Slots", "risk": "High Risk - Narrow Road"},
+    4: {"name": "Olandganj Intersection", "route": "T.D. College | Railway Station", "parking": "T.D. College - 5 Slots (Full)", "risk": "High Risk - E-Rickshaw Hub"},
+    5: {"name": "Line Bazar Intersection", "route": "Collectorate | Police Lines", "parking": "Collectorate - 40 Slots", "risk": "Low Risk Zone"},
+    6: {"name": "Visheshwarpur Intersection", "route": "Sheetla Dham | Wholesale", "parking": "Local Market - 20 Slots", "risk": "Medium Risk"},
+    7: {"name": "Kotwali Intersection", "route": "Shahganj | Old City", "parking": "Kotwali - 12 Slots", "risk": "High Risk - Old City"},
+    8: {"name": "Wajidpur Three-Way", "route": "Varanasi Highway | Entry Point", "parking": "Highway - 50 Slots", "risk": "VERY HIGH RISK - Highway Speed"},
+    9: {"name": "Ambedkar Three-Way", "route": "Civil Lines", "parking": "Civil Lines - 35 Slots", "risk": "Low Risk Zone"},
+    10: {"name": "Sipah Intersection", "route": "Varanasi | Atala Masjid", "parking": "Sipah - 25 Slots", "risk": "High Risk - Speeding"},
+    11: {"name": "Zafarabad Three-Way", "route": "Varanasi | Kerakat", "parking": "Zafarabad - 45 Slots", "risk": "VERY HIGH RISK - Railway Crossing"}
+}
+
+COORDINATES = {
+    1:(25.7536,82.6867),2:(25.7498,82.6942),3:(25.7475,82.6855),4:(25.7505,82.6905),
+    5:(25.7580,82.6820),6:(25.7420,82.6800),7:(25.7445,82.6830),8:(25.7610,82.7000),
+    9:(25.7555,82.6750),10:(25.7350,82.6955),11:(25.7040,82.7500)
+}
+
+# Sidebar
+with st.sidebar:
+    st.markdown("## 🚦 JAUNPUR SMART CITY")
+    st.caption("AI Traffic Management v3.0")
+    st.divider()
+    role = st.selectbox("Login Role", ["Public User", "Traffic Police", "Municipal Council Officer"])
+    festival = st.selectbox("Operational Mode", ["Normal Day", "Sawan Mela", "Durga Puja", "Festival", "Election Day"])
+    emergency = st.toggle("🚨 Emergency Corridor")
+    e_density = st.slider("E-Rickshaw Density", 0, 100, 25)
+    weather = st.selectbox("Weather", ["Clear", "Rain", "Fog", "Summer Heat"])
+    st.divider()
+    st.markdown("**Developed by** \nShreya Singh \n*Smart City Jaunpur*")
+
 # Header Section
-# ----------------------------------------------------------------------------------
-st.title("🚦 AI Vehicle Traffic Prediction")
-st.subheader("Jaunpur City - Comprehensive Traffic Analysis System")
-st.caption(f"Backend Live: {API_URL} | Developed by Shreya Singh")
+st.markdown("<h1 style='margin-bottom:0px;'>AI Vehicle Traffic Prediction System</h1>", unsafe_allow_html=True)
+st.markdown(f"<p style='color:#9E9E9E!important; font-size:14px;'>Live Monitoring | Role: {role} | Powered by AI & IoT</p>", unsafe_allow_html=True)
 st.divider()
 
-# ----------------------------------------------------------------------------------
-# Core Dataset: 11 Major Junctions of Jaunpur City
-# ----------------------------------------------------------------------------------
-junctions = {
-    1: {"name": "Polytechnic Intersection", "route": "Prayagraj (Allahabad), Lucknow, and Shahganj", "landmark": "Government Polytechnic College, Lohia Park"},
-    2: {"name": "Jesis Intersection (Amravati)", "route": "Azamgarh, Gorakhpur, and Roadways Bus Stand", "landmark": "'I Love Jaunpur' Sign Board, Electronics Market"},
-    3: {"name": "Chaharsu Intersection", "route": "Historical Old Market, Kotwali, and Shahganj", "landmark": "Near the historic Shahi Bridge (Mughal Bridge)"},
-    4: {"name": "Olandganj Intersection", "route": "T.D. College Route and Jaunpur Junction Railway Station", "landmark": "Main commercial and shopping hub of the city"},
-    5: {"name": "Line Bazar Intersection", "route": "Collectorate, Police Lines, and T.D. College", "landmark": "Administrative area, residential shopping hub"},
-    6: {"name": "Visheshwarpur Intersection", "route": "Inner city local markets and Sheetla Choukiya Dham", "landmark": "Major wholesale commercial centre"},
-    7: {"name": "Kotwali Intersection", "route": "Shahganj Route and Old City residential areas", "landmark": "Main Kotwali (Police Station)"},
-    8: {"name": "Wajidpur Three-Way Junction", "route": "Varanasi Highway and Maihar Devi Temple", "landmark": "Parasnathpur area, prominent entry point to the city"},
-    9: {"name": "Ambedkar Three-Way Junction", "route": "Civil Lines area", "landmark": "Dr. B.R. Ambedkar Statue Circle"},
-    10: {"name": "Sipah Intersection (Sipah Police Station)", "route": "Direct Varanasi Route and Atala Masjid area", "landmark": "Busy junction near Sipah Police Station, Northern bank of Gomti River"},
-    11: {"name": "Zafarabad Three-Way Junction", "route": "Varanasi and Kerakat Route", "landmark": "Key outer junction point near Zafarabad Railway Station"}
-}
+selected = st.selectbox("📍 Select Junction for Analysis", list(JUNCTIONS.keys()), format_func=lambda x: f"{x}. {JUNCTIONS[x]['name']}")
 
-coords = {
-    1: (25.7536, 82.6867), 2: (25.7498, 82.6942), 3: (25.7475, 82.6855),
-    4: (25.7505, 82.6905), 5: (25.7580, 82.6820), 6: (25.7420, 82.6800),
-    7: (25.7445, 82.6830), 8: (25.7610, 82.7000), 9: (25.7555, 82.6750),
-    10: (25.7350, 82.6955), 11: (25.7040, 82.7500)
-}
+c1, c2 = st.columns(2)
+c1.info(f"**Route:** {JUNCTIONS[selected]['route']}")
+c2.success(f"**Parking:** {JUNCTIONS[selected]['parking']}")
 
-# ----------------------------------------------------------------------------------
-# Smart City Control Panel
-# ----------------------------------------------------------------------------------
-st.sidebar.header("Smart City Control Panel")
-festival_mode = st.sidebar.selectbox("Festival / Event Mode", ["Normal Day", "Sawan Mela", "Durga Puja", "Festival", "Election Day"])
-emergency_mode = st.sidebar.toggle("Emergency Mode (Ambulance + Police Corridor)")
-erickshaw_count = st.sidebar.slider("E-Rickshaw Density Analysis", 0, 100, 25)
-voice_language = st.sidebar.selectbox("Voice Alert System", ["English"])
-weather_condition = st.sidebar.selectbox("Environmental Condition", ["Clear", "Rain", "Fog", "Summer Heat"])
-alert_number = st.sidebar.text_input("WhatsApp Alert Notification Number", placeholder="Enter Mobile Number")
-
-selected_id = st.selectbox("Select Junction for Analysis", list(junctions.keys()), format_func=lambda x: f"{x}. {junctions[x]['name']}")
-
-col_r, col_l = st.columns(2)
-col_r.info(f"**Route Connectivity:** {junctions[selected_id]['route']}")
-col_l.success(f"**Nearby Landmark:** {junctions[selected_id]['landmark']}")
-
-# ----------------------------------------------------------------------------------
-# Live Map - Fixed
-# ----------------------------------------------------------------------------------
-lat, lon = coords[selected_id]
-st.subheader(f"Live Geospatial Map - {junctions[selected_id]['name']}")
-map_df = pd.DataFrame({"lat": [lat], "lon": [lon]})
-st.map(map_df, zoom=15)
-st.caption(f"GPS: {lat}, {lon} | {junctions[selected_id]['name']}")
+lat, lon = COORDINATES[selected]
+st.subheader(f"Geospatial Intelligence - {JUNCTIONS[selected]['name']}")
+st.map(pd.DataFrame({"lat":[lat],"lon":[lon]}), zoom=15)
+st.markdown(f"[View on Google Maps ↗](https://www.google.com/maps/search/?api=1&query={lat},{lon})")
 st.divider()
 
-col1, col2, col3 = st.columns(3)
-with col1:
-    hour = st.slider("Select Hour (0-23)", 0, 23, 10)
-with col2:
-    weekday = st.selectbox("Day of Week", ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"])
-with col3:
-    is_holiday = st.selectbox("Is Holiday?", ["No", "Yes"])
+a1, a2, a3 = st.columns(3)
+with a1: hour = st.slider("Hour", 0, 23, 10)
+with a2: day = st.selectbox("Day", ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"])
+with a3: holiday = st.selectbox("Holiday", ["No","Yes"])
 
-def get_local_prediction(j_id, h, w_day, h_day):
-    random.seed(j_id * 100 + h)
+def predict(jid, h):
+    random.seed(jid * 100 + h)
     base = 110
-    if j_id in [4, 3, 2]: base += 55
-    if j_id in [8, 11]: base += 35
+    if jid in [4,3,2]: base += 55
+    if jid in [8,11]: base += 35
     if 8 <= h <= 11 or 17 <= h <= 20: base += 60
-    if w_day == "Monday": base += 20
-    if w_day in ["Saturday","Sunday"]: base = int(base * 0.8)
-    if h_day == "Yes": base = int(base * 0.65)
-    if festival_mode!= "Normal Day": base += 50
-    if erickshaw_count > 30: base += 30
-    if weather_condition == "Rain": base += 20
+    if festival!= "Normal Day": base += 50
+    if e_density > 30: base += 30
+    if weather == "Rain": base += 20
     return base + random.randint(-15, 30)
 
-def get_traffic_cause(j_id, count, erick, festival, weather):
-    causes = []
-    if erick > 40: causes.append(f"High E-Rickshaw Density ({erick} vehicles) - Primary bottleneck in Jaunpur")
-    if j_id in [4, 3, 2]: causes.append("Commercial Hub + Market Area + Narrow Road Infrastructure")
-    if j_id in [8, 11]: causes.append("Highway Entry Point + Heavy Vehicle Movement")
-    if festival!= "Normal Day": causes.append(f"{festival} - Public Gathering and Crowd Movement")
-    if weather == "Rain": causes.append("Water Logging + Reduced Vehicle Speed")
-    if count > 210: causes.append("Peak Hour Rush (08:00-11:00 / 17:00-20:00)")
-    if not causes: causes.append("Normal Traffic Flow - No Major Obstruction")
-    return causes
-
-if st.button("🚀 Predict Traffic", use_container_width=True, type="primary"):
-    vehicles = get_local_prediction(selected_id, hour, weekday, is_holiday)
+def get_audio(text, lang):
     try:
-        payload = {"junction": selected_id, "hour": hour, "day": 15, "is_holiday": 1 if is_holiday=="Yes" else 0}
-        api_res = requests.post(API_URL, json=payload, timeout=5)
-        if api_res.status_code == 200:
-            vehicles = api_res.json().get("predicted_count", vehicles)
+        from gtts import gTTS
+        tts = gTTS(text=text, lang=lang)
+        buf = BytesIO()
+        tts.write_to_fp(buf)
+        buf.seek(0)
+        return buf
     except:
-        pass
+        return None
 
-    level = "Low" if vehicles < 130 else "Medium" if vehicles < 210 else "High / Critical"
-    causes = get_traffic_cause(selected_id, vehicles, erickshaw_count, festival_mode, weather_condition)
+if st.button("🚀 PREDICT & ANALYZE TRAFFIC", use_container_width=True):
+    count = predict(selected, hour)
+    try:
+        payload = {"junction": selected, "hour": hour, "day": 15, "is_holiday": 1 if holiday == "Yes" else 0}
+        r = requests.post(API_URL, json=payload, timeout=4)
+        if r.status_code == 200:
+            count = r.json().get("predicted_count", count)
+    except: pass
 
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Predicted Vehicle Count", f"{vehicles} vehicles/hr")
-    c2.metric("Congestion Level", level)
-    c3.metric("Estimated Waiting Time", "5-7 min" if "High" in level else "2-3 min" if "Medium" in level else "0-1 min")
-    c4.metric("Weather Impact Factor", weather_condition)
+    level = "Low" if count < 130 else "Medium" if count < 210 else "High / Critical"
+    timer = "90s - High Density" if "High" in level else "60s - Moderate" if "Medium" in level else "30s - Eco Mode"
+    aqi = int(count * 0.8 + e_density * 0.5)
+    aqi_label = "Good" if aqi < 100 else "Moderate" if aqi < 200 else "Poor"
+    revenue = int(count * 0.1 * 500)
 
-    if "High" in level:
-        st.error(f"🔴 High Congestion Detected at {junctions[selected_id]['name']}")
-    elif "Medium" in level:
-        st.warning(f"🟠 Moderate Traffic at {junctions[selected_id]['name']}")
-    else:
-        st.success(f"🟢 Traffic Flow Clear at {junctions[selected_id]['name']}")
+    if emergency:
+        st.error("🚨 EMERGENCY CORRIDOR ACTIVE - All Signals GREEN for Ambulance")
 
-    st.subheader("Traffic Cause Analysis - For Quick Clearance")
-    for idx, cause in enumerate(causes, 1):
-        if "High" in cause or "Peak" in cause:
-            st.error(f"{idx}. {cause}")
-        else:
-            st.warning(f"{idx}. {cause}")
+    m1, m2, m3, m4 = st.columns(4)
+    m1.metric("VEHICLES / HR", f"{count}")
+    m2.metric("CONGESTION", level)
+    m3.metric("SIGNAL TIMER", timer)
+    m4.metric("AQI INDEX", f"{aqi} {aqi_label}")
 
     st.divider()
-    st.subheader("Voice Alert System")
-    voice_text = f"Attention, {level} traffic congestion reported at {junctions[selected_id]['name']}. Cause is {causes[0]}."
-    st.info(f"🔊 Voice Message: {voice_text}")
+    st.subheader("🚨 Risk & Safety Intelligence")
+    risk = JUNCTIONS[selected]['risk']
+    if "VERY HIGH" in risk: st.error(f"CRITICAL ALERT: {risk} - Limit 20 km/h")
+    elif "High" in risk: st.warning(f"WARNING: {risk} - Drive Carefully")
+    else: st.success(f"SAFE CORRIDOR: {risk}")
 
-    if alert_number:
-        st.success(f"WhatsApp Alert Sent to {alert_number}")
+    st.subheader("🅿️ Smart Parking Engine")
+    if "High" in level: st.warning(f"Primary Full. Alternate Suggested: {JUNCTIONS[selected]['parking']}")
+    else: st.success(f"Slot Available: {JUNCTIONS[selected]['parking']}")
 
-    st.subheader(f"📊 24-Hour Traffic Pattern - {junctions[selected_id]['name']}")
-    chart_df = pd.DataFrame({"Hour": list(range(24)), "Vehicles": [get_local_prediction(selected_id, h, weekday, is_holiday) for h in range(24)]})
-    st.bar_chart(chart_df.set_index("Hour"))
+    # Triple Language Voice System
+    st.divider()
+    st.subheader("🔊 Multilingual Voice Assistant")
+    en_text = f"Attention. {level} traffic at {JUNCTIONS[selected]['name']}. Count {count} vehicles per hour. Signal green for {timer}. AQI {aqi}. {risk}."
+    hi_text = f"Dhyan dijiye. {JUNCTIONS[selected]['name']} par {level} traffic hai. Gaadiyon ki sankhya {count} prati ghante hai. Signal {timer} hara hai. AQI {aqi} hai."
+    bho_text = f"Sunli. {JUNCTIONS[selected]['name']} par bhari jaam ba. {count} gaadi ek ghanta me ba. {level} jaam ba. Signal {timer} khula ba."
 
-    st.subheader("📈 All Junctions Comparative Analysis")
-    all_data = [{"Junction": junctions[jid]['name'].split()[0], "Vehicles": get_local_prediction(jid, hour, weekday, is_holiday)} for jid in junctions]
-    st.line_chart(pd.DataFrame(all_data).set_index("Junction"))
+    col_en, col_hi, col_bho = st.columns(3)
+    with col_en:
+        st.markdown("#### English")
+        st.caption(en_text)
+        aud = get_audio(en_text, 'en')
+        if aud: st.audio(aud, format='audio/mp3')
+    with col_hi:
+        st.markdown("#### Hindi")
+        st.caption(hi_text)
+        aud = get_audio(hi_text, 'hi')
+        if aud: st.audio(aud, format='audio/mp3')
+    with col_bho:
+        st.markdown("#### Bhojpuri")
+        st.caption(bho_text)
+        aud = get_audio(bho_text, 'hi')
+        if aud: st.audio(aud, format='audio/mp3')
+
+    if role!= "Public User":
+        st.divider()
+        st.subheader("💰 Enforcement & Revenue Panel")
+        x1, x2, x3 = st.columns(3)
+        x1.metric("Challans Today", f"{int(count*0.1)}")
+        x2.metric("Revenue", f"₹ {revenue}")
+        x3.metric("E-Rickshaw Fine", f"₹ {e_density*100}")
+
+    st.divider()
+    st.subheader("📈 24-Hour Traffic Forecast")
+    hourly_df = pd.DataFrame({"Hour": list(range(24)), "Vehicles": [predict(selected, h) for h in range(24)]})
+    st.bar_chart(hourly_df.set_index("Hour"))
+
+    st.subheader("📊 City-Wide Junction Comparison")
+    comp_df = pd.DataFrame([{"Junction": JUNCTIONS[j]['name'].split()[0], "Vehicles": predict(j, hour)} for j in JUNCTIONS])
+    st.line_chart(comp_df.set_index("Junction"))
+
+    st.download_button("📥 Export Traffic Report", data=hourly_df.to_csv(index=False).encode('utf-8'), file_name=f"Jaunpur_Traffic_Report_J{selected}.csv")
+
+# Admin Panels
+st.divider()
+with st.expander("🚔 Traffic Police - Live City Dashboard"):
+    data = [{"ID": j, "Junction": JUNCTIONS[j]['name'], "Count": predict(j, hour), "Timer": "90s" if predict(j, hour) >= 210 else "60s" if predict(j, hour) >= 130 else "30s", "Risk": JUNCTIONS[j]['risk'], "Status": "🔴 High" if predict(j, hour) >= 210 else "🟠 Med" if predict(j, hour) >= 130 else "🟢 Low"} for j in JUNCTIONS]
+    st.dataframe(pd.DataFrame(data), use_container_width=True)
+
+with st.expander("🏛️ Municipal Council - Action Center"):
+    m_data = [{"Junction": JUNCTIONS[j]['name'], "Parking": JUNCTIONS[j]['parking'], "Action": "Clear Encroachment" if predict(j, hour) > 210 else "Routine Patrol"} for j in JUNCTIONS]
+    st.dataframe(pd.DataFrame(m_data), use_container_width=True)
+    if st.button("📤 Forward Report to Commissioner"):
+        st.success("Report forwarded to Municipal Commissioner, Jaunpur.")
 
 st.divider()
-st.markdown("""
-**Project Details:**
-- **Project Title:** AI Vehicle Traffic Prediction - Smart City Jaunpur
-- **Total Junctions Covered:** 11 (8 Four-Way & 3 Three-Way)
-- **Data Source:** Jaunpur City Mapping & Field Research
-- **Backend API:** https://ai-vehicle-traffic-prediction-fastapi-1.onrender.com
-- **Developed By:** Shreya Singh
-""")
+st.markdown("<center style='color:#666; font-size:12px;'>Jaunpur Smart City Project | AI Traffic Management System | Designed & Developed by Shreya Singh</center>", unsafe_allow_html=True)
