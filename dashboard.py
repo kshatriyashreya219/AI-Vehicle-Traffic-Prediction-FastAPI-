@@ -14,6 +14,26 @@ st.set_page_config(
 )
 
 # ----------------------------------------------------------------------------------
+# Custom Style - Green Predict Button
+# ----------------------------------------------------------------------------------
+st.markdown("""
+<style>
+div.stButton > button:first-child {
+    background-color: #00C853!important;
+    color: white!important;
+    border: none;
+    height: 50px;
+    font-size: 18px;
+    font-weight: bold;
+    border-radius: 10px;
+}
+div.stButton > button:first-child:hover {
+    background-color: #00A843!important;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# ----------------------------------------------------------------------------------
 # Backend API Configuration
 # ----------------------------------------------------------------------------------
 API_URL = "https://ai-vehicle-traffic-prediction-fastapi-1.onrender.com/predict"
@@ -54,10 +74,10 @@ coords = {
 # Smart City Control Panel
 # ----------------------------------------------------------------------------------
 st.sidebar.header("Smart City Control Panel")
-festival_mode = st.sidebar.selectbox("Festival / Event Mode", ["Normal Day", "Sawan Mela", "Durga Puja", "Moharram", "Election Day"])
+festival_mode = st.sidebar.selectbox("Festival / Event Mode", ["Normal Day", "Sawan Mela", "Durga Puja", "Festival", "Election Day"])
 emergency_mode = st.sidebar.toggle("Emergency Mode (Ambulance + Police Corridor)")
 erickshaw_count = st.sidebar.slider("E-Rickshaw Density Analysis", 0, 100, 25)
-voice_language = st.sidebar.selectbox("Multi-Language Voice Alert System", ["English", "Hindi", "Bhojpuri"])
+voice_language = st.sidebar.selectbox("Voice Alert System", ["English"])
 weather_condition = st.sidebar.selectbox("Environmental Condition", ["Clear", "Rain", "Fog", "Summer Heat"])
 alert_number = st.sidebar.text_input("WhatsApp Alert Notification Number", placeholder="Enter Mobile Number")
 
@@ -67,9 +87,14 @@ col_r, col_l = st.columns(2)
 col_r.info(f"**Route Connectivity:** {junctions[selected_id]['route']}")
 col_l.success(f"**Nearby Landmark:** {junctions[selected_id]['landmark']}")
 
+# ----------------------------------------------------------------------------------
+# Live Map - Fixed
+# ----------------------------------------------------------------------------------
 lat, lon = coords[selected_id]
 st.subheader(f"Live Geospatial Map - {junctions[selected_id]['name']}")
-st.components.v1.html(f'<iframe width="100%" height="350" style="border:0; border-radius:12px;" src="https://maps.google.com/maps?q={lat},{lon}&z=16&output=embed"></iframe>', height=370)
+map_df = pd.DataFrame({"lat": [lat], "lon": [lon]})
+st.map(map_df, zoom=15)
+st.caption(f"GPS: {lat}, {lon} | {junctions[selected_id]['name']}")
 st.divider()
 
 col1, col2, col3 = st.columns(3)
@@ -133,18 +158,16 @@ if st.button("🚀 Predict Traffic", use_container_width=True, type="primary"):
 
     st.subheader("Traffic Cause Analysis - For Quick Clearance")
     for idx, cause in enumerate(causes, 1):
-        st.error(f"{idx}. {cause}") if "High" in cause or "Peak" in cause else st.warning(f"{idx}. {cause}")
+        if "High" in cause or "Peak" in cause:
+            st.error(f"{idx}. {cause}")
+        else:
+            st.warning(f"{idx}. {cause}")
 
     st.divider()
-    st.subheader(f"Voice Alert System - {voice_language}")
-    if voice_language == "English":
-        voice_text = f"Attention, {level} traffic congestion reported at {junctions[selected_id]['name']}. Cause is {causes[0]}."
-    elif voice_language == "Hindi":
-        voice_text = f"Dhyan dijiye, {junctions[selected_id]['name']} par {level} traffic hai. Karan hai {causes[0]}."
-    else:
-        voice_text = f"Sunila, {junctions[selected_id]['name']} par bhari bheed ba. Karan ba {causes[0]}."
-
+    st.subheader("Voice Alert System")
+    voice_text = f"Attention, {level} traffic congestion reported at {junctions[selected_id]['name']}. Cause is {causes[0]}."
     st.info(f"🔊 Voice Message: {voice_text}")
+
     if alert_number:
         st.success(f"WhatsApp Alert Sent to {alert_number}")
 
