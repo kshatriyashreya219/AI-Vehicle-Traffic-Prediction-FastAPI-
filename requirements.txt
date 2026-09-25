@@ -1,6 +1,8 @@
 streamlit
-plotly
 pandas
+plotly
 fastapi
 uvicorn
 pydantic
+requests
+gtts
