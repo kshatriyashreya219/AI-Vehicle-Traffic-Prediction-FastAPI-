@@ -2,18 +2,20 @@
 
 An AI-powered Smart Traffic Management System designed specifically for **Jaunpur City** to predict traffic congestion, optimize signal timers, and assist Traffic Police & Municipal Council.
 
-**Live Demo (Frontend):** https://jaunpur-traffic-ai-prediction.streamlit.app
-**Backend Live API:** https://ai-vehicle-traffic-prediction-fastapi.onrender.com/predict
-**Backend API Docs:** https://ai-vehicle-traffic-prediction-fastapi.onrender.com/docs
-**Developed By:** Shreya Singh
+**🌐 Live Demo (Frontend):** https://jaunpur-traffic-ai-prediction.streamlit.app
+**⚙️ Backend API:** https://ai-vehicle-traffic-prediction-fastapi-1.onrender.com
+**📚 API Docs (Swagger):** https://ai-vehicle-traffic-prediction-fastapi-1.onrender.com/docs
+**👩‍💻 Developed By:** Shreya Singh
+**📍 City Focus:** Jaunpur, Uttar Pradesh, India
 
 ---
 
 ### 📍 Project Overview
-Jaunpur is a heritage city with narrow roads, heavy E-Rickshaw density, and historical zones like Shahi Bridge (1564 AD) and Atala Masjid (1408 AD). This project uses Machine Learning + YOLOv8 + TomTom + Weather + SQLite to predict hourly vehicle count.
+Jaunpur is a heritage city with narrow roads, heavy E-Rickshaw density, and historical zones like Shahi Bridge (1564 AD) and Atala Masjid (1408 AD). This project uses Machine Learning + YOLOv8 + TomTom + Weather + SQLite to predict hourly vehicle count and manage traffic smartly.
 
 ### ✨ Key Features
-**1. Core Prediction:**
+
+**1. Core Prediction System:**
 - Vehicle count prediction per hour (AI + FastAPI)
 - Congestion Level: Low / Medium / High / Critical
 - Dynamic Signal Timer: 30s / 60s / 90s
@@ -34,17 +36,24 @@ Jaunpur is a heritage city with narrow roads, heavy E-Rickshaw density, and hist
 - Emergency Corridor Mode: Green corridor for Ambulance/Police
 
 ### 🗺️ Junctions Covered (11 Total)
-- 8 Four-Way: Polytechnic, Jesis, Chaharsu, Olandganj, Line Bazar, Visheshwarpur, Kotwali, Sipah
-- 3 Three-Way: Wajidpur, Ambedkar, Zafarabad
+- **8 Four-Way:** Polytechnic, Jesis, Chaharsu, Olandganj, Line Bazar, Visheshwarpur, Kotwali, Sipah
+- **3 Three-Way:** Wajidpur, Ambedkar, Zafarabad
 
 ### 🛠️ Tech Stack
-- Frontend: Streamlit
-- Backend: FastAPI (on Render)
-- ML Model: YOLOv8 + RandomForest
-- Libraries: TomTom API, OpenWeather, SQLite, Folium, gTTS
+- **Frontend:** Streamlit
+- **Backend:** FastAPI (Deployed on Render)
+- **ML Model:** YOLOv8 + RandomForest Regressor
+- **Libraries:** TomTom API, OpenWeather, SQLite, Folium, gTTS
 
-### 🛠️ Installation
+### 🔗 API Endpoints
+- `GET /` - Health Check
+- `POST /predict` - Predict Traffic
+- `GET /docs` - Swagger UI
+
+### 🛠️ Installation (Local)
 ```bash
 git clone https://github.com/kshatriyashreya219/AI-Vehicle-Traffic-Prediction-FastAPI.git
+cd AI-Vehicle-Traffic-Prediction-FastAPI
 pip install -r requirements.txt
 streamlit run dashboard.py
+uvicorn main:app --reload
