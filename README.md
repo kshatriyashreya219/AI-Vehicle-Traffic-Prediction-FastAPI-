@@ -2,8 +2,9 @@
 
 An AI-powered Smart Traffic Management System designed specifically for **Jaunpur City** to predict traffic congestion, optimize signal timers, and assist Traffic Police & Municipal Council.
 
-**Live Demo:** https://traffic-ai-prediction.streamlit.app
-**Backend API:** https://ai-vehicle-traffic-prediction-fastapi.onrender.com/predict
+**Live Demo:** https://ai-vehicle-traffic-prediction-fastapi.streamlit.app
+**Backend API Docs:** https://ai-vehicle-traffic-prediction-fastapi.onrender.com/docs
+**Backend Predict API:** https://ai-vehicle-traffic-prediction-fastapi.onrender.com/predict
 **Developed By:** Shreya Singh
 
 ---
@@ -25,10 +26,10 @@ Jaunpur is a heritage city with narrow roads, heavy E-Rickshaw density, and hist
 - Live Google Maps Embed
 
 **3. Unique Innovations (Viva Points):**
-- Heritage Zone Alert: Alerts for Shahi Bridge & Atala Masjid
+- Heritage Zone Alert: Alerts for Shahi Bridge & Atala Masjid - Heavy vehicle restricted
 - Alternate Route Intelligence: AI suggests alternate route to bypass congestion
 - Carbon & Fuel Loss Calculator: Calculates fuel wastage, CO2 emission, and economic loss
-- Smart City Performance Score: 100/100 scoring
+- Smart City Performance Score: 100/100 scoring based on traffic, weather, festival
 - Multi-Language Voice Alert: English, Hindi, Bhojpuri using gTTS
 - Emergency Corridor Mode: One-click Green corridor for Ambulance/Police
 
@@ -45,7 +46,7 @@ Jaunpur is a heritage city with narrow roads, heavy E-Rickshaw density, and hist
 - Frontend: Streamlit
 - Backend: FastAPI (on Render)
 - ML Model: RandomForest / Regression Model
-- Libraries: Pandas, Requests, gTTS, Random, Datetime
+- Libraries: Pandas, Requests, Folium, streamlit-folium, gTTS
 - Mapping: Google Maps Embed API, Folium Digital Twin
 
 ### 🛠️ Installation
