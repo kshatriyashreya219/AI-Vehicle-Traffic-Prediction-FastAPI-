@@ -2,7 +2,7 @@
 
 An AI-powered Smart Traffic Management System designed specifically for **Jaunpur City** to predict traffic congestion, optimize signal timers, and assist Traffic Police & Municipal Council.
 
-**🌐 Live Demo (Frontend):** https://jaunpur-traffic-ai-prediction.streamlit.app
+**🌐 Live Demo (Frontend):** https://jaunpur-traffic-ai-prediction.streamlit.app/
 **⚙️ Backend API:** https://ai-vehicle-traffic-prediction-fastapi-1.onrender.com
 **📚 API Docs (Swagger):** https://ai-vehicle-traffic-prediction-fastapi-1.onrender.com/docs
 **👩‍💻 Developed By:** Shreya Singh
