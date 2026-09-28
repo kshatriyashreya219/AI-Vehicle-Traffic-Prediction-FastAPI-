@@ -1,8 +1,6 @@
 streamlit
-pandas
-plotly
-fastapi
-uvicorn
-pydantic
 requests
-gtts
+pandas
+folium
+streamlit-folium
+gTTS
