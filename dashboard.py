@@ -351,7 +351,7 @@ with st.expander("Municipal Council Jaunpur - Action Dashboard"):
             st.success("Report successfully sent to Executive Officer, Municipal Council Jaunpur")
             st.balloons()
 
-with st.expander("🗃️ SQLite DB Logs - Last 20 Predictions (Proof for Sir)"):
+with st.expander("🗃️ SQLite DB Logs - Last 20 Predictions"):
     st.dataframe(get_logs(), use_container_width=True, hide_index=True)
     st.caption("Ye DB me auto-save ho raha hai: junction, hour, day, is_holiday, predicted_count")
 
