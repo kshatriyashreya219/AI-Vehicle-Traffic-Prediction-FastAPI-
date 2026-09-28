@@ -1,6 +1,13 @@
-streamlit
-requests
+fastapi
+uvicorn
 pandas
+numpy
+scikit-learn
+requests
 folium
+streamlit
 streamlit-folium
-gTTS
+gtts
+pydantic
+python-multipart
+joblib
